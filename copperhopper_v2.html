@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CopperHopper v2 - Juego de navegación entre artículos de la Coppermind">
+    <meta name="author" content="Aya">
+    <title>CopperHopper v2</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --copper: #b87333;
+            --deep-blue: #0A0E17;
+            --mid-blue: #1E3A5F;
+            --light-text: #F4F4F4;
+            --soft-gray: #C0C0C0;
+            --bronze-shadow: rgba(184, 115, 51, 0.3);
+            --copper-glow: 0 0 8px rgba(184, 115, 51, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(10, 14, 23, 0.85), rgba(10, 14, 23, 0.85)),
+                        url('https://i.ibb.co/0jhk8zNg/fondo7.jpg') center/cover no-repeat fixed;
+            color: var(--light-text);
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Merriweather', serif;
+            color: var(--copper);
+            text-shadow: 0 1px 2px #000;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(10, 14, 23, 0.7);
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .article-card {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 10px var(--bronze-shadow);
+            backdrop-filter: blur(5px);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .article-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .article-card:not(.visible) {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .article-title {
+            color: var(--copper);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.5rem;
+        }
+
+        .article-title .btn-external {
+            background-color: transparent;
+            border: none;
+            color: var(--copper);
+            padding: 0.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .article-title .btn-external:hover {
+            color: #ffd7a0;
+            transform: scale(1.1);
+        }
+
+        .article-content {
+            color: var(--light-text);
+            flex: 0 0 60%;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            padding: 0 1rem 1rem 0;
+            border-bottom: 1px solid var(--copper);
+        }
+
+        .article-content p {
+            margin: 0;
+            padding: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .stats-panel {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 10px var(--bronze-shadow);
+            backdrop-filter: blur(5px);
+        }
+
+        .timer {
+            color: var(--light-text);
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .tracker-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--mid-blue);
+            color: var(--light-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid var(--copper);
+            box-shadow: var(--copper-glow);
+        }
+
+        .tracker-item.active {
+            background: var(--copper);
+            transform: scale(1.1);
+        }
+
+        .tracker-item.completed {
+            background: var(--mid-blue);
+            opacity: 0.8;
+        }
+
+        .btn {
+            background-color: transparent;
+            border: 2px solid var(--copper);
+            color: var(--light-text);
+            padding: 0.6rem 1.2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--copper-glow);
+        }
+
+        .btn:hover {
+            background-color: var(--copper);
+            color: var(--deep-blue);
+            border-color: var(--copper);
+            box-shadow: var(--copper-glow);
+        }
+
+        .btn:focus {
+            outline: none;
+            box-shadow: var(--copper-glow);
+        }
+
+        .btn-primary {
+            background-color: var(--copper);
+            border-color: var(--copper);
+            color: var(--deep-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: transparent;
+            color: var(--light-text);
+            border-color: var(--copper);
+        }
+
+        .btn-info {
+            background-color: transparent;
+            border-color: var(--copper);
+            color: var(--light-text);
+        }
+
+        .btn-info:hover {
+            background-color: var(--copper);
+            color: var(--deep-blue);
+            border-color: var(--copper);
+        }
+
+        .btn-warning {
+            background-color: transparent;
+            border-color: var(--copper);
+            color: var(--light-text);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--copper);
+            color: var(--deep-blue);
+            border-color: var(--copper);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border-color: var(--copper);
+            color: var(--light-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--copper);
+            color: var(--deep-blue);
+            border-color: var(--copper);
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        .modal {
+            padding-top: 4rem;
+        }
+
+        .modal-dialog {
+            margin: 0;
+            position: absolute;
+            top: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .modal-dialog-centered {
+            margin: 0;
+            position: absolute;
+            top: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .modal-content {
+            background-color: rgba(10, 14, 23, 0.95);
+            border: 1px solid var(--copper);
+            border-radius: 1rem;
+            color: var(--light-text);
+            box-shadow: 0 0 20px var(--bronze-shadow);
+            backdrop-filter: blur(10px);
+            margin-top: 0;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.fade .modal-dialog {
+            transform: translate(-50%, -20px);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal.show .modal-dialog {
+            transform: translate(-50%, 0);
+        }
+
+        /* Asegurar que los modales no se centren verticalmente */
+        .modal-dialog.modal-dialog-centered {
+            min-height: calc(100% - 4rem);
+            display: flex;
+            align-items: flex-start;
+            margin: 0;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-footer {
+            border-top: none;
+        }
+
+        #welcomeModal .modal-header,
+        #tutorialModal .modal-header {
+            border-bottom: none;
+        }
+
+        #welcomeModal .modal-footer,
+        #tutorialModal .modal-footer {
+            border-top: none;
+        }
+
+        .modal-title {
+            color: var(--copper);
+        }
+
+        .alert-info {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            color: var(--light-text);
+        }
+
+        .alert-warning {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            color: var(--light-text);
+        }
+
+        .alert-danger {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            color: var(--light-text);
+        }
+
+        .alert-secondary {
+            background-color: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--copper);
+            color: var(--light-text);
+        }
+
+        .btn-close {
+            color: var(--copper);
+            opacity: 0.8;
+        }
+
+        .btn-close:hover {
+            color: var(--light-text);
+            opacity: 1;
+        }
+
+        .modal-body p {
+            color: var(--light-text);
+        }
+
+        .modal-body h6 {
+            color: var(--copper);
+        }
+
+        .modal-body .fw-bold {
+            color: var(--copper);
+        }
+
+        .links-section {
+            flex: 0 0 35%;
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--copper);
+            border-radius: 4px;
+            background-color: rgba(10, 14, 23, 0.95);
+            color: var(--light-text);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #ffd7a0;
+            box-shadow: 0 0 5px rgba(255, 215, 160, 0.3);
+        }
+
+        .links-container {
+            overflow-y: auto;
+            max-height: 200px;
+            padding: 0 0.5rem;
+        }
+
+        .links-counter {
+            font-size: 0.8rem;
+            color: var(--soft-gray);
+            margin-bottom: 0.5rem;
+            text-align: right;
+            padding: 0 0.5rem;
+        }
+
+        .links-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding-right: 10px;
+            margin-top: 10px;
+        }
+
+        .links-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .links-container::-webkit-scrollbar-track {
+            background: var(--mid-blue);
+            border-radius: 3px;
+        }
+
+        .links-container::-webkit-scrollbar-thumb {
+            background: var(--copper);
+            border-radius: 3px;
+        }
+
+        .links-container::-webkit-scrollbar-thumb:hover {
+            background: #ffd7a0;
+        }
+
+        .link-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            background: transparent;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            word-break: break-word;
+            color: var(--light-text);
+            border-left: 3px solid transparent;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            min-height: 40px;
+        }
+
+        .link-item:hover {
+            border-left: 3px solid var(--copper);
+            background-color: rgba(184, 115, 51, 0.1);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--mid-blue);
+            border-top: 5px solid var(--copper);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .article-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .article-content::-webkit-scrollbar-track {
+            background: var(--mid-blue);
+            border-radius: 3px;
+        }
+
+        .article-content::-webkit-scrollbar-thumb {
+            background: var(--copper);
+            border-radius: 3px;
+        }
+
+        .article-content::-webkit-scrollbar-thumb:hover {
+            background: #ffd7a0;
+        }
+
+        .secondary-hint {
+            margin-top: 0;
+            padding: 0;
+            font-size: 0.85rem;
+            color: var(--light-text);
+            background: transparent;
+            border: none;
+            display: inline;
+            vertical-align: middle;
+        }
+
+        .hint-item li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .hint-item li span {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .hint-item li button {
+            margin: 0 0.5rem;
+        }
+
+        .help-timer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--copper);
+            color: var(--deep-blue);
+            padding: 2px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .game-controls:hover .help-timer {
+            opacity: 1;
+        }
+
+        .article-actions {
+            flex: 0 0 5%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .stats-info {
+            flex: 0 0 35%;
+            margin-top: 1rem;
+            color: var(--light-text);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        .moves-counter {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--copper);
+            color: var(--light-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: var(--copper-glow);
+            order: 2;
+        }
+
+        .timer {
+            color: var(--light-text);
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            order: 3;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            flex: 1;
+        }
+
+        .game-controls.hint-control {
+            order: 1;
+            justify-content: flex-start;
+        }
+
+        .game-controls.surrender-control {
+            order: 4;
+            justify-content: flex-end;
+        }
+
+        .game-controls .btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            color: var(--soft-gray);
+            border-color: var(--soft-gray);
+            pointer-events: none;
+        }
+
+        .game-controls .btn.ready {
+            color: var(--light-text);
+            border-color: var(--copper);
+            pointer-events: auto;
+        }
+
+        .game-controls .btn:first-child {
+            order: 1;
+        }
+
+        .game-controls .btn:last-child {
+            order: 4;
+        }
+
+        .hints-section {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--copper);
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .hints-section h5 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hints-section.hidden {
+            display: none;
+        }
+
+        .hint-item {
+            padding: 0.4rem;
+            margin-bottom: 0.4rem;
+            border: 1px solid var(--copper);
+            border-radius: 4px;
+            background-color: rgba(184, 115, 51, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .hint-item:hover {
+            background-color: rgba(184, 115, 51, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="article-card" id="fromArticle">
+                    <h3 class="article-title">Artículo de inicio</h3>
+                    <div class="article-info"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="article-card" id="toArticle">
+                    <h3 class="article-title">Artículo objetivo</h3>
+                    <div class="article-info"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loadingSpinner" style="display: none;">
+            <div class="loading-spinner"></div>
+                </div>
+
+        <!-- Modal de Rendición -->
+        <div class="modal fade" id="surrenderModal" tabindex="-1" aria-labelledby="surrenderModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="surrenderModalLabel">Te has rendido</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                    <div class="modal-body">
+                        <p>No has llegado desde <span id="startArticle" class="fw-bold"></span> hasta <span id="targetArticle" class="fw-bold"></span>.</p>
+                        <div id="optimalPath"></div>
+            </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" onclick="resetGame()">Nuevo Juego</button>
+        </div>
+        </div>
+        </div>
+        </div>
+
+        <!-- Modal de Victoria -->
+        <div class="modal fade" id="victoryModal" tabindex="-1" aria-labelledby="victoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="victoryModalLabel">¡Felicidades!</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Has llegado desde <span id="victoryStartArticle" class="fw-bold"></span> hasta <span id="victoryTargetArticle" class="fw-bold"></span> en <span id="victoryMoves" class="fw-bold"></span> movimientos.</p>
+                        <p>Tiempo total: <span id="victoryTime" class="fw-bold"></span></p>
+                        <p>Pistas usadas: <span id="victoryHints" class="fw-bold"></span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" onclick="resetGame()">Nuevo Juego</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de pistas -->
+        <div class="modal fade" id="hintModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Pista</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- El contenido se generará dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de bienvenida -->
+        <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">COPPERHOPPER v2</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¡Bienvenide a la nueva versión de CopperHopper!</p>
+                        <p>Un juego creado por las cotorras, basado en el WikiRace, y bautizado por El Club de las Tormentas.</p>
+                        
+                        <h6 class="mt-3">Novedades en v2:</h6>
+                        <ul>
+                            <li>Sistema de puntuación basado en movimientos y tiempo</li>
+                            <li>Pistas disponibles después de 30 segundos</li>
+                            <li>Buscador de enlaces para encontrar rápidamente lo que necesitas</li>
+                            <li>Diseño mejorado para una mejor experiencia</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#tutorialModal">Cómo jugar</button>
+                        <button type="button" class="btn btn-primary" id="startGame">Empezar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de tutorial -->
+        <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cómo jugar a CopperHopper</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>Objetivo</h6>
+                        <p>Navega desde el artículo de inicio hasta el artículo objetivo en el menor número de clics posible.</p>
+
+                        <h6 class="mt-3">¿Cómo funciona?</h6>
+                        <ol>
+                            <li>En la parte superior aparecerán dos artículos, el inicial y el objetivo, con un pequeño extracto</li>
+                            <li>Bajo el artículo de inicio, aparecerán los enlaces disponibles</li>
+                            <li>Haz clic en un enlace que creas que te acercará al objetivo</li>
+                            <li>El artículo de inicio se actualizará con el nuevo artículo</li>
+                            <li>Continúa navegando hasta llegar al objetivo</li>
+                            <li>¡Cada clic cuenta como un movimiento!</li>
+                        </ol>
+
+                        <h6 class="mt-3">Ejemplo</h6>
+                        <p>Si tuvieras que viajar de "alta tormenta" a "germinador":</p>
+                        <div class="alert alert-secondary">
+                            <p class="mb-0">Alta tormenta → Roshar → Cosmere → Lumar → Germinador</p>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-lightbulb"></i> ¡A veces los extractos de los artículos pueden contener pistas sobre qué enlace elegir!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="tutorialStartButton" data-bs-dismiss="modal">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de fin de juego -->
+        <div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Fin del juego</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- El contenido se generará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales del juego
+        let gameState = {
+            startArticle: null,
+            targetArticle: null,
+            currentArticle: null,
+            path: [],
+            moves: 0,
+            timer: null,
+            seconds: 0,
+            hintsUsed: 0,
+            secondaryHintsUsed: 0,
+            optimalPath: null,
+            calculatingPath: false,
+            previousHint: []
+        };
+
+        // Cache para almacenar enlaces ya obtenidos
+        const linkCache = new Map();
+        const backlinkCache = new Map();
+
+        // Función para reiniciar el juego (ahora global)
+        window.resetGame = function() {
+            // Detener el temporizador
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+            
+            // Reiniciar el estado del juego
+            gameState = {
+                startArticle: null,
+                targetArticle: null,
+                currentArticle: null,
+                path: [],
+                moves: 0,
+                timer: null,
+                seconds: 0,
+                hintsUsed: 0,
+                secondaryHintsUsed: 0,
+                optimalPath: null,
+                calculatingPath: false,
+                previousHint: []
+            };
+            
+            // Limpiar las cachés de enlaces
+            linkCache.clear();
+            backlinkCache.clear();
+            
+            // Reiniciar la interfaz solo si los elementos existen
+            const movesElement = document.getElementById('moves');
+            const timerElement = document.getElementById('timer');
+            const currentArticleElement = document.getElementById('currentArticle');
+            
+            if (movesElement) movesElement.textContent = '0';
+            if (timerElement) timerElement.textContent = '1:30';
+            if (currentArticleElement) currentArticleElement.textContent = 'Esperando inicio...';
+            
+            // Iniciar un nuevo juego automáticamente sin mostrar modales
+            startGame(false);
+        };
+
+        // Esperar a que todo esté cargado
+        (function() {
+        // Lista de enlaces prohibidos
+        const prohibitedLinks = [
+            'Categoría:',
+            'Plantilla:',
+            'Usuario:',
+            'Discusión:',
+            'Ayuda:',
+            'Portal:',
+            'Especial:',
+            'Wikipedia:',
+            'Wikia:',
+            'Fandom:',
+            'MediaWiki:',
+            'Module:',
+            'Archivo:',
+            'Coppermind:',
+            'Cite:',
+            '(desambiguación)',
+            '(desambigüación)',
+            'desambiguación',
+            'desambigüación',
+            'redirección',
+            'redirect'
+        ];
+
+        // Función para obtener enlaces con caché
+        async function getCachedLinks(title, isBacklink = false) {
+            const cache = isBacklink ? backlinkCache : linkCache;
+            if (cache.has(title)) {
+                return cache.get(title);
+            }
+            const links = isBacklink ? await getBacklinks(title) : await getArticleLinks(title);
+            cache.set(title, links);
+            return links;
+        }
+
+        // Lista de artículos populares de la Coppermind en español
+        const popularArticles = [
+            'Kaladin',
+            'Dalinar_Kholin',
+            'Vin',
+            'Kelsier',
+            'Sazed',
+            'Waxillium_Ladrian',
+            'Wayne',
+            'Hoid',
+            'Jasnah_Kholin',
+            'Shallan_Davar',
+            'Adolin_Kholin',
+            'Szeth',
+            'Lift',
+            'Marsh',
+            'Elend_Venture'
+        ];
+
+            // Función para obtener artículos traducidos
+            async function getTranslatedArticles() {
+                try {
+                    console.log('Obteniendo artículos traducidos...');
+                    // Obtener artículos de ambas categorías
+                    const [translatedResponse, inProgressResponse] = await Promise.all([
+                        fetch('https://es.coppermind.net/w/api.php?action=query&list=categorymembers&cmtitle=Categor%C3%ADa:Art%C3%ADculos_ya_traducidos&cmlimit=500&format=json&origin=*'),
+                        fetch('https://es.coppermind.net/w/api.php?action=query&list=categorymembers&cmtitle=Categor%C3%ADa:En_proceso&cmlimit=500&format=json&origin=*')
+                    ]);
+
+                    const [translatedData, inProgressData] = await Promise.all([
+                        translatedResponse.json(),
+                        inProgressResponse.json()
+                    ]);
+
+                    if (!translatedData.query || !translatedData.query.categorymembers || 
+                        !inProgressData.query || !inProgressData.query.categorymembers) {
+                        console.error('Error en la respuesta de la API:', { translatedData, inProgressData });
+                        throw new Error('No se pudieron obtener los artículos');
+                    }
+
+                    // Combinar y filtrar artículos de ambas categorías
+                    const allArticles = [
+                        ...translatedData.query.categorymembers,
+                        ...inProgressData.query.categorymembers
+                    ];
+
+                    // Filtrar solo los artículos principales (excluir subcategorías)
+                    const filteredArticles = allArticles
+                        .filter(member => !member.title.startsWith('Categoría:'))
+                        .map(member => member.title);
+
+                    console.log(`Se encontraron ${filteredArticles.length} artículos traducidos`);
+                    return filteredArticles;
+                } catch (error) {
+                    console.error('Error al obtener artículos:', error);
+                    return popularArticles;
+                }
+            }
+
+            // Función para obtener las categorías de un artículo
+            async function getArticleCategories(article) {
+                try {
+                    console.log(`Obteniendo categorías para: ${article}`);
+                    
+                    const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&prop=categories&titles=${encodeURIComponent(article)}&format=json&origin=*`);
+                    const data = await response.json();
+                    
+                    if (!data || !data.query || !data.query.pages) {
+                        console.error('No se pudo obtener las categorías del artículo:', article);
+                        return null;
+                    }
+
+                    const pageId = Object.keys(data.query.pages)[0];
+                    const page = data.query.pages[pageId];
+                    
+                    if (!page || !page.categories) {
+                        console.log(`No se encontraron categorías para ${article}`);
+                        return null;
+                    }
+
+                    return page.categories.map(cat => cat.title);
+                } catch (error) {
+                    console.error(`Error al obtener las categorías del artículo ${article}:`, error);
+                    return null;
+                }
+            }
+
+            // Función para obtener el universo y planeta de un artículo a partir de sus categorías
+            function getUniverseAndPlanetFromCategories(categories) {
+                if (!categories) return { universe: 'unknown', planet: null };
+                
+                // Buscar el universo
+                const cosmereMatch = categories.find(cat => 
+                    cat.includes('Artículos del Cosmere') || 
+                    cat.includes('Cosmere')
+                );
+                const citoversoMatch = categories.find(cat => 
+                    cat.includes('Artículos del Citoverso') || 
+                    cat.includes('Citoverso')
+                );
+                
+                let universe = 'unknown';
+                if (cosmereMatch) {
+                    universe = 'Cosmere';
+                } else if (citoversoMatch) {
+                    universe = 'Citoverso';
+                }
+                
+                // Si no es del Cosmere, no buscamos planeta
+                if (universe !== 'Cosmere') {
+                    return { universe, planet: null };
+                }
+                
+                // Lista de planetas y sus palabras clave
+                const planetKeywords = {
+                    'Roshar': ['Roshar'],
+                    'Scadrial': ['Scadrial'],
+                    'Sel': ['Sel'],
+                    'Nalthis': ['Nalthis'],
+                    'Taldain': ['Taldain'],
+                    'Primero del Sol': ['Primero del Sol'],
+                    'Lumar': ['Lumar'],
+                    'Komashi': ['Komashi'],
+                    'UTol': ['UTol'],
+                    'Vax': ['Vax'],
+                    'Yolen': ['Yolen'],
+                    'Braize': ['Braize'],
+                    'Ashyn': ['Ashyn'],
+                    'Cántico': ['Cántico'],
+                    'Dhatri': ['Dhatri'],
+                    'Bjendal': ['Bjendal'],
+                    'Mythos': ['Mythos'],
+                    'Obrodai': ['Obrodai'],
+                    'Treno': ['Treno']
+                };
+
+                // Buscar el planeta
+                for (const [planet, keywords] of Object.entries(planetKeywords)) {
+                    if (categories.some(cat => keywords.some(keyword => cat.includes(keyword)))) {
+                        return { universe, planet };
+                    }
+                }
+                
+                return { universe, planet: null };
+            }
+
+            // Función para obtener el universo de un artículo
+            async function getArticleUniverse(article) {
+                try {
+                    const categories = await getArticleCategories(article);
+                    if (!categories) return 'unknown';
+
+                    const { universe } = getUniverseAndPlanetFromCategories(categories);
+                    return universe;
+                } catch (error) {
+                    console.error(`Error al obtener el universo del artículo ${article}:`, error);
+                    return 'unknown';
+                }
+            }
+
+            // Función para obtener el planeta de un artículo
+            async function getArticlePlanet(article) {
+                try {
+                    const categories = await getArticleCategories(article);
+                    if (!categories) return null;
+
+                    const { planet } = getUniverseAndPlanetFromCategories(categories);
+                    return planet;
+                } catch (error) {
+                    console.error(`Error al obtener el planeta del artículo ${article}:`, error);
+                    return null;
+                }
+            }
+
+            // Función para obtener el universo y planeta de un artículo
+            async function getArticleInfo(article) {
+                try {
+                    const categories = await getArticleCategories(article);
+                    if (!categories) return { universe: 'unknown', planet: null };
+                    
+                    return getUniverseAndPlanetFromCategories(categories);
+                } catch (error) {
+                    console.error(`Error al obtener la información del artículo ${article}:`, error);
+                    return { universe: 'unknown', planet: null };
+                }
+            }
+
+        // Función para obtener un artículo aleatorio de la Coppermind
+        async function getRandomArticle() {
+            try {
+                    const translatedArticles = await getTranslatedArticles();
+                let attempts = 0;
+                const maxAttempts = 10;
+
+                while (attempts < maxAttempts) {
+                        const article = translatedArticles[Math.floor(Math.random() * translatedArticles.length)];
+                        const universe = await getArticleUniverse(article);
+                        
+                        if (universe !== 'unknown') {
+                            return article;
+                        }
+                    attempts++;
+                }
+
+                return popularArticles[Math.floor(Math.random() * popularArticles.length)];
+            } catch (error) {
+                console.error('Error al obtener artículo aleatorio:', error);
+                return popularArticles[Math.floor(Math.random() * popularArticles.length)];
+            }
+        }
+
+        // Función para verificar si un artículo tiene enlaces entrantes
+        async function hasIncomingLinks(title) {
+            try {
+                const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&list=backlinks&bltitle=${encodeURIComponent(title)}&bllimit=1&format=json&origin=*`);
+                const data = await response.json();
+                
+                return data.query && data.query.backlinks && data.query.backlinks.length > 0;
+            } catch (error) {
+                console.error('Error al verificar enlaces entrantes:', error);
+                return false;
+            }
+        }
+
+        // Función para obtener un artículo objetivo válido
+            async function getValidTargetArticle(startArticle, maxAttempts = 5) {
+                console.log('Buscando artículo objetivo válido...');
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+                attempts++;
+                    console.log(`Intento ${attempts} de ${maxAttempts}`);
+                    
+                    // Obtener un artículo aleatorio
+                    const targetArticle = await getRandomArticle();
+                    if (!targetArticle) {
+                        console.log('No se pudo obtener un artículo aleatorio');
+                        continue;
+                    }
+                    
+                    console.log('Artículo objetivo candidato:', targetArticle);
+                    
+                    // Verificar que no sea el mismo que el artículo de inicio
+                    if (targetArticle === startArticle) {
+                        console.log('El artículo objetivo es el mismo que el de inicio');
+                        continue;
+                    }
+                    
+                    // Verificar que tenga enlaces entrantes válidos
+                    const backlinks = await getBacklinks(targetArticle);
+                    if (backlinks.length === 0) {
+                        console.log('El artículo objetivo no tiene enlaces entrantes válidos');
+                        continue;
+                    }
+                    
+                    // Verificar que haya al menos un enlace válido
+                    const validLinks = backlinks.filter(link => !prohibitedLinks.some(prohibited => 
+                        link.toLowerCase().includes(prohibited.toLowerCase())
+                    ));
+                    
+                    if (validLinks.length === 0) {
+                        console.log('El artículo objetivo no tiene enlaces válidos');
+                        continue;
+                    }
+                    
+                    // Verificar que se pueda llegar desde el artículo de inicio
+                    const path = await calculateOptimalPath(startArticle, targetArticle);
+                    if (!path) {
+                        console.log('No se encontró ruta válida al artículo objetivo');
+                        continue;
+                    }
+                    
+                    console.log('Artículo objetivo válido encontrado:', targetArticle);
+                    return targetArticle;
+                }
+                
+                console.log('No se encontró un artículo objetivo válido después de', maxAttempts, 'intentos');
+                return null;
+        }
+
+        // Función para cargar la información de un artículo
+        async function loadArticleInfo(title) {
+                console.log(`Cargando información para: ${title}`);
+                try {
+                    // Primero verificar si es una redirección
+                    const redirectResponse = await fetch(`https://es.coppermind.net/w/api.php?action=query&titles=${encodeURIComponent(title)}&redirects&format=json&origin=*`);
+                    const redirectData = await redirectResponse.json();
+                    
+                    // Si hay redirección, obtener el título real
+                    if (redirectData.query && redirectData.query.redirects && redirectData.query.redirects.length > 0) {
+                        const redirect = redirectData.query.redirects[0];
+                        console.log(`Redirección encontrada: ${redirect.from} → ${redirect.to}`);
+                        title = redirect.to;
+                    }
+
+                    // Obtener el extracto del artículo
+                    const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+                    const data = await response.json();
+                    
+                    if (!data.query || !data.query.pages) {
+                        throw new Error('No se pudo obtener la información del artículo');
+                    }
+
+                    const pageId = Object.keys(data.query.pages)[0];
+                    const page = data.query.pages[pageId];
+                    
+                    if (!page || page.missing) {
+                        throw new Error('Artículo no encontrado');
+                    }
+
+                    // Solo obtener el universo y planeta si es el artículo inicial o final
+                    let universeInfo = { universe: 'Desconocido', planet: 'Desconocido' };
+                    if (title === gameState.startArticle || title === gameState.targetArticle) {
+                        universeInfo = await getArticleInfo(title);
+                    }
+
+                    // Manejar el caso donde no hay extracto disponible
+                    let extract = page.extract;
+                    if (!extract || extract.trim() === '') {
+                        // Crear un extracto personalizado con la información disponible
+                        extract = `Este artículo no tiene extracto disponible. Es un artículo sobre ${universeInfo.universe !== 'unknown' ? `el universo de ${universeInfo.universe}` : 'Brandon Sanderson'}.`;
+                        
+                        if (universeInfo.planet) {
+                            extract += ` Se encuentra en el planeta ${universeInfo.planet}.`;
+                        }
+                        
+                        extract += ` Puedes hacer clic en los enlaces disponibles para explorar más información.`;
+                    }
+
+                    return {
+                        title: page.title,
+                        extract: extract,
+                        universe: universeInfo.universe || 'Desconocido',
+                        planet: universeInfo.planet || 'Desconocido'
+                    };
+                } catch (error) {
+                    console.error(`Error al cargar información para ${title}:`, error);
+                    throw error;
+                }
+            }
+
+            // Función para obtener los enlaces de un artículo
+            async function getArticleLinks(title) {
+                try {
+                    const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&prop=links&plnamespace=0&pllimit=500&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+                    const data = await response.json();
+                    const pages = data.query.pages;
+                    const pageId = Object.keys(pages)[0];
+                    const links = pages[pageId].links || [];
+
+                    // Filtros más estrictos para enlaces no permitidos
+                    const disallowedPrefixes = [
+                        'Coppermind:', 'Cite:', 'Categoría:', 'Archivo:', 'Plantilla:', 
+                        'Usuario:', 'Discusión:', 'Ayuda:', 'Portal:', 'Especial:',
+                        'Wikipedia:', 'Wikia:', 'Fandom:', 'MediaWiki:', 'Module:'
+                    ];
+
+                    // Lista de substrings que no son artículos válidos
+                    const disallowedSubstrings = [
+                        '://', '(desambiguación)', '(desambigüación)', 'desambiguación',
+                        'desambigüación', 'redirección', 'redirect', 'categoría', 'categoría:',
+                        'plantilla:', 'usuario:', 'discusión:', 'ayuda:', 'portal:', 'especial:',
+                        'wikipedia:', 'wikia:', 'fandom:', 'mediawiki:', 'module:', 'cite:'
+                    ].filter(substring => 
+                        !substring.includes('resumen') && 
+                        !substring.includes('Resumen') && 
+                        !substring.includes('summary') && 
+                        !substring.includes('Summary')
+                    );
+
+                    return links
+                        .map(link => link.title.trim())
+                        .filter(link => {
+                            // Convertir a minúsculas para comparación insensible a mayúsculas/minúsculas
+                            const lowerLink = link.toLowerCase();
+                            
+                            // Verificar prefijos no permitidos
+                            if (disallowedPrefixes.some(prefix => lowerLink.startsWith(prefix.toLowerCase()))) {
+                                return false;
+                            }
+
+                            // Verificar substrings no permitidos
+                            if (disallowedSubstrings.some(substring => lowerLink.includes(substring))) {
+                                return false;
+                            }
+
+                            // Verificar si es un enlace externo o contiene caracteres especiales
+                            if (link.includes('://') || link.includes('(') || link.includes(')')) {
+                                return false;
+                            }
+
+                            return true;
+                        });
+                } catch (error) {
+                    console.error('Error al obtener enlaces:', error);
+                    return [];
+                }
+            }
+
+            // Función para mostrar los enlaces disponibles
+            async function showAvailableLinks() {
+                const currentArticle = document.getElementById('fromArticle');
+                const infoElement = currentArticle.querySelector('.article-info');
+                
+                const existingLinks = currentArticle.querySelector('.links-section');
+                if (existingLinks) {
+                    existingLinks.remove();
+                }
+
+                const linksSection = document.createElement('div');
+                linksSection.className = 'links-section';
+                
+                linksSection.innerHTML = `
+                    <div class="text-center">
+                        <div class="loading-spinner" style="width: 30px; height: 30px; border-width: 3px;"></div>
+                        <p class="mt-2">Cargando enlaces...</p>
+                    </div>
+                `;
+                infoElement.appendChild(linksSection);
+
+                try {
+                    const links = await getArticleLinks(gameState.currentArticle);
+
+                    if (links.length === 0) {
+                        linksSection.innerHTML = `
+                            <div class="text-center">
+                                <p class="text-danger mb-3">No se encontraron enlaces disponibles.</p>
+                                ${gameState.path.length > 1 ? `
+                                    <button class="btn btn-warning" id="goBackButton">
+                                        <i class="fas fa-arrow-left"></i> Volver atrás
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        linksSection.innerHTML = `
+                            <div class="search-box">
+                                <input type="text" placeholder="Buscar enlaces..." id="linkSearch" autocomplete="off">
+                            </div>
+                            <div class="links-counter" id="linksCounter">${links.length} enlaces</div>
+                            <div class="links-container">
+                                <div class="links-list" id="linksList">
+                                    ${links.map(link => `
+                                        <div class="link-item" data-article="${link}">
+                                    ${link}
+                                        </div>
+                            `).join('')}
+                                </div>
+                    </div>
+                `;
+
+                        const searchInput = linksSection.querySelector('#linkSearch');
+                        searchInput.addEventListener('input', function(e) {
+                            const searchTerm = e.target.value.toLowerCase();
+                            const linkItems = linksSection.querySelectorAll('.link-item');
+                            let visibleCount = 0;
+
+                            linkItems.forEach(item => {
+                                const text = item.textContent.toLowerCase();
+                                if (text.includes(searchTerm)) {
+                                    item.style.display = '';
+                                    visibleCount++;
+                                } else {
+                                    item.style.display = 'none';
+                                }
+                            });
+
+                            const counter = linksSection.querySelector('#linksCounter');
+                            counter.textContent = `${visibleCount} de ${links.length} enlaces`;
+                        });
+                    }
+            } catch (error) {
+                    console.error('Error al cargar los enlaces:', error);
+                    linksSection.innerHTML = `
+                        <div class="text-center">
+                            <p class="text-danger mb-3">Error al cargar los enlaces. Por favor, intenta de nuevo.</p>
+                            ${gameState.path.length > 1 ? `
+                                <button class="btn btn-warning" id="goBackButton">
+                                    <i class="fas fa-arrow-left"></i> Volver atrás
+                                            </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            // Función para actualizar la interfaz de usuario del artículo
+            function updateArticleUI(article, isTarget = false) {
+                const card = isTarget ? document.getElementById('toArticle') : document.getElementById('fromArticle');
+                const titleElement = card.querySelector('.article-title');
+                const infoElement = card.querySelector('.article-info');
+
+                // Limpiar el contenido anterior
+                infoElement.innerHTML = '';
+
+                // Asegurar que la tarjeta sea visible
+                card.classList.add('visible');
+
+                titleElement.innerHTML = `
+                    <span>${article.title}</span>
+                    <a href="https://es.coppermind.net/wiki/${encodeURIComponent(article.title)}" target="_blank" class="btn-external">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                `;
+
+                let extractText = article.extract;
+                if (extractText.length > 600) {
+                    const lastPeriod = extractText.substring(0, 600).lastIndexOf('.');
+                    if (lastPeriod > 0) {
+                        extractText = extractText.substring(0, lastPeriod + 1) + ' [...]';
+                    } else {
+                        const lastSpace = extractText.substring(0, 600).lastIndexOf(' ');
+                        extractText = extractText.substring(0, lastSpace) + ' [...]';
+                    }
+                }
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'article-content';
+                contentDiv.innerHTML = `<p>${extractText}</p>`;
+                infoElement.appendChild(contentDiv);
+
+                if (isTarget) {
+                    const statsInfo = document.createElement('div');
+                    statsInfo.className = 'stats-info';
+                    statsInfo.innerHTML = `
+                        <div class="stats-row">
+                            <div class="game-controls hint-control">
+                                <button id="hintButton" class="btn btn-info">Pista</button>
+                                    </div>
+                            <div class="moves-counter">
+                                <span id="moves">0</span>
+                            </div>
+                            <div class="timer" id="timer">00:00</div>
+                            <div class="game-controls surrender-control">
+                                <button id="surrenderButton" class="btn btn-warning">Rendirse</button>
+                            </div>
+                        </div>
+                        <div class="hints-section hidden">
+                            <!-- Las pistas se añadirán aquí cuando estén disponibles -->
+                    </div>
+                `;
+                    infoElement.appendChild(statsInfo);
+                } else {
+                    showAvailableLinks();
+                }
+
+                // Forzar un reflow para asegurar que los cambios se apliquen
+                card.offsetHeight;
+            }
+
+            // Función para actualizar las estadísticas
+            function updateStats() {
+                document.getElementById('moves').textContent = gameState.moves;
+        }
+
+        // Función para iniciar el temporizador
+        function startTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+            }
+
+                const gameControls = document.querySelectorAll('.game-controls');
+                gameControls.forEach(control => {
+            const helpTimer = document.createElement('div');
+            helpTimer.className = 'help-timer';
+            helpTimer.textContent = 'Ayuda disponible en: 30s';
+                    control.appendChild(helpTimer);
+                });
+
+            let helpTimeLeft = 3;
+            const helpTimerInterval = setInterval(() => {
+                helpTimeLeft--;
+                    document.querySelectorAll('.help-timer').forEach(timer => {
+                        timer.textContent = `Ayuda disponible en: ${helpTimeLeft}s`;
+                    });
+                
+                if (helpTimeLeft <= 0) {
+                    clearInterval(helpTimerInterval);
+                        document.querySelectorAll('.help-timer').forEach(timer => timer.remove());
+                        document.querySelectorAll('.game-controls .btn').forEach(button => {
+                            button.classList.add('ready');
+                        });
+                }
+            }, 1000);
+
+            gameState.timer = setInterval(() => {
+                gameState.seconds++;
+                const minutes = Math.floor(gameState.seconds / 60);
+                const seconds = gameState.seconds % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+            // Función para iniciar el juego (ahora global)
+            window.startGame = async function(showWelcomeModal = true) {
+                console.log('Iniciando nuevo juego...');
+                try {
+                    // Cerrar el modal de rendición si está abierto
+                    const surrenderModal = bootstrap.Modal.getInstance(document.getElementById('surrenderModal'));
+                    if (surrenderModal) {
+                        surrenderModal.hide();
+                    }
+
+                    // Cerrar el modal de victoria si está abierto
+                    const victoryModal = bootstrap.Modal.getInstance(document.getElementById('victoryModal'));
+                    if (victoryModal) {
+                        victoryModal.hide();
+                    }
+
+                    // Cerrar el modal de juego si está abierto
+                    const gameModal = bootstrap.Modal.getInstance(document.getElementById('gameModal'));
+                    if (gameModal) {
+                        gameModal.hide();
+                    }
+
+                    // Mostrar el spinner de carga
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    loadingSpinner.style.display = 'block';
+                    loadingSpinner.innerHTML = `
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Cargando artículos...</p>
+                        </div>
+                    `;
+
+                    // Limpiar completamente el estado del juego
+                    gameState = {
+                        startArticle: null,
+                        targetArticle: null,
+                        currentArticle: null,
+                        path: [],
+                        moves: 0,
+                        timer: null,
+                        seconds: 0,
+                        hintsUsed: 0,
+                        secondaryHintsUsed: 0,
+                        optimalPath: null,
+                        calculatingPath: false,
+                        previousHint: []
+                    };
+
+                    // Limpiar las cachés de enlaces
+                    linkCache.clear();
+                    backlinkCache.clear();
+
+                    // Detener cualquier temporizador activo
+                    if (gameState.timer) {
+                        clearInterval(gameState.timer);
+                        gameState.timer = null;
+                    }
+
+                    // Obtener los artículos inicial y objetivo
+                    const translatedArticles = await getTranslatedArticles();
+
+                    // Seleccionar artículos aleatorios de la lista traducida
+                    gameState.startArticle = translatedArticles[Math.floor(Math.random() * translatedArticles.length)];
+                    do {
+                        gameState.targetArticle = translatedArticles[Math.floor(Math.random() * translatedArticles.length)];
+                    } while (gameState.targetArticle === gameState.startArticle);
+
+                    console.log('Artículos seleccionados:', {
+                        inicio: gameState.startArticle,
+                        objetivo: gameState.targetArticle
+                    });
+
+                    // Cargar la información de los artículos
+                    const [startInfo, targetInfo] = await Promise.all([
+                        loadArticleInfo(gameState.startArticle),
+                        loadArticleInfo(gameState.targetArticle)
+                    ]);
+
+                    console.log('Información de universo y planeta:', {
+                        inicio: { universo: startInfo.universe, planeta: startInfo.planet },
+                        objetivo: { universo: targetInfo.universe, planeta: targetInfo.planet }
+                    });
+
+                    // Actualizar la interfaz con la información inicial
+                    updateArticleUI(startInfo);
+                    updateArticleUI(targetInfo, true);
+
+                    // Inicializar el estado del juego
+                    gameState.currentArticle = gameState.startArticle;
+                    gameState.path = [gameState.startArticle];
+                    updateStats();
+                    startTimer();
+
+                    // Mostrar los enlaces disponibles
+                    await showAvailableLinks();
+
+                    // Ocultar el spinner de carga
+                    loadingSpinner.style.display = 'none';
+
+                    // Iniciar el cálculo de la ruta óptima en segundo plano
+                    calculateOptimalPath().then(path => {
+                        gameState.optimalPath = path;
+                    }).catch(error => {
+                        console.error('Error al calcular la ruta óptima:', error);
+                    });
+
+            } catch (error) {
+                    console.error('Error al iniciar el juego:', error);
+                    alert('Error al iniciar el juego. Por favor, intenta de nuevo.');
+                    loadingSpinner.style.display = 'none';
+                }
+            };
+
+            // Función para calcular la ruta óptima
+            async function calculateOptimalPath(start = null, target = null) {
+                // Si no se proporcionan parámetros, usar los artículos del estado del juego
+                if (!start || !target) {
+                    start = gameState.startArticle;
+                    target = gameState.targetArticle;
+                }
+
+                console.log('Iniciando búsqueda de ruta óptima...');
+                console.log('Artículo inicial:', start);
+                console.log('Artículo objetivo:', target);
+
+                if (!start || !target) {
+                    console.error('No se proporcionaron artículos válidos');
+                    return null;
+                }
+
+                // Obtener información de los universos y planetas solo para los artículos inicial y final
+                const startInfo = await getArticleInfo(start);
+                const targetInfo = await getArticleInfo(target);
+                
+                console.log('Información del artículo inicial:', startInfo);
+                console.log('Información del artículo objetivo:', targetInfo);
+
+                // Caso 1: Ambos artículos son del Cosmere
+                if (startInfo.universe === 'Cosmere' && targetInfo.universe === 'Cosmere') {
+                    console.log('Ambos artículos son del Cosmere');
+                    
+                    // Si son del mismo planeta, hacer búsqueda bidireccional directa
+                    if (startInfo.planet === targetInfo.planet) {
+                        console.log('Ambos artículos son del mismo planeta:', startInfo.planet);
+                        return await findBidirectionalPath(start, target);
+            } else {
+                        console.log('Los artículos son de planetas diferentes');
+                        console.log('Planeta inicial:', startInfo.planet);
+                        console.log('Planeta objetivo:', targetInfo.planet);
+                        
+                        // Construir la ruta: Inicio -> Cosmere -> Planeta objetivo -> Objetivo
+                        let predefinedPath;
+                        
+                        // Si el planeta objetivo es null, usar Cosmere como punto de partida para la búsqueda bidireccional
+                        if (targetInfo.planet === null) {
+                            console.log('Planeta objetivo es null, usando Cosmere como punto de partida');
+                            predefinedPath = [
+                                start,
+                                'Cosmere',
+                                target
+                            ];
+                            
+                            // Verificar si la ruta es válida
+                            const isValidPath = await verifyPath(predefinedPath);
+                            if (isValidPath) {
+                                return predefinedPath;
+                            }
+                            
+                            // Si la ruta no es válida, intentar búsqueda bidireccional desde Cosmere
+                            console.log('Ruta predefinida no válida, intentando búsqueda bidireccional desde Cosmere');
+                            return await findBidirectionalPath('Cosmere', target);
+                        } else {
+                            predefinedPath = [
+                                start,
+                                'Cosmere',
+                                targetInfo.planet,
+                                target
+                            ];
+                            
+                            // Verificar si la ruta es válida
+                            const isValidPath = await verifyPath(predefinedPath);
+                            if (isValidPath) {
+                                return predefinedPath;
+                            }
+                            
+                            // Si la ruta no es válida, intentar búsqueda bidireccional desde el planeta objetivo
+                            console.log('Ruta predefinida no válida, intentando búsqueda bidireccional desde el planeta objetivo');
+                            return await findBidirectionalPath(targetInfo.planet, target);
+                        }
+                    }
+                }
+                // Caso 2: Ambos artículos son del Citoverso
+                else if (startInfo.universe === 'Citoverso' && targetInfo.universe === 'Citoverso') {
+                    console.log('Ambos artículos son del Citoverso');
+                    return await findBidirectionalPath(start, target);
+                }
+                // Caso 3: Cosmere -> Citoverso
+                else if (startInfo.universe === 'Cosmere' && targetInfo.universe === 'Citoverso') {
+                    console.log('Ruta Cosmere -> Citoverso detectada, siguiendo ruta predefinida');
+                    
+                    // Construir la ruta: Inicio -> Cosmere -> Brandon_Sanderson -> Citoverso -> Objetivo
+                    const predefinedPath = [
+                        start,
+                        'Cosmere',
+                        'Brandon Sanderson',
+                        'Citoverso',
+                        target
+                    ];
+                    
+                    // Verificar si la ruta es válida
+                    const isValidPath = await verifyPath(predefinedPath);
+                    if (isValidPath) {
+                        return predefinedPath;
+                    }
+                    
+                    // Si la ruta no es válida, intentar búsqueda bidireccional desde el último artículo de la ruta
+                    console.log('Ruta predefinida no válida, intentando búsqueda bidireccional desde Citoverso');
+                    return await findBidirectionalPath('Citoverso', target);
+                }
+                // Caso 4: Citoverso -> Cosmere
+                else if (startInfo.universe === 'Citoverso' && targetInfo.universe === 'Cosmere') {
+                    console.log('Ruta Citoverso -> Cosmere detectada, siguiendo ruta predefinida');
+                    
+                    // Construir la ruta: Inicio -> Citoverso -> Brandon_Sanderson -> Cosmere -> Planeta objetivo -> Objetivo
+                    let predefinedPath;
+                    if (targetInfo.planet) {
+                        predefinedPath = [
+                            start,
+                            'Citoverso',
+                            'Brandon Sanderson',
+                            'Cosmere',
+                            targetInfo.planet,
+                            target
+                        ];
+                    } else {
+                        predefinedPath = [
+                            start,
+                            'Citoverso',
+                            'Brandon Sanderson',
+                            'Cosmere',
+                            target
+                        ];
+                    }
+                    
+                    // Verificar si la ruta es válida
+                    const isValidPath = await verifyPath(predefinedPath);
+                    if (isValidPath) {
+                        return predefinedPath;
+                    }
+                    
+                    // Si la ruta no es válida, intentar búsqueda bidireccional desde el último artículo de la ruta
+                    console.log('Ruta predefinida no válida, intentando búsqueda bidireccional desde Cosmere');
+                    return await findBidirectionalPath('Cosmere', target);
+                }
+
+                // Si no se encontró una ruta específica, intentar búsqueda bidireccional como último recurso
+                console.log('Intentando búsqueda bidireccional como último recurso...');
+                return await findBidirectionalPath(start, target);
+            }
+
+            // Función para verificar si una ruta es válida
+            async function verifyPath(path) {
+                console.log('Verificando ruta:', path.join(' → '));
+                
+                // Verificar que cada artículo en la ruta tenga un enlace al siguiente
+                for (let i = 0; i < path.length - 1; i++) {
+                    const currentArticle = path[i];
+                    const nextArticle = path[i + 1];
+                    
+                    // Obtener los enlaces del artículo actual
+                    const links = await getCachedLinks(currentArticle);
+                    
+                    // Verificar si el siguiente artículo está en los enlaces
+                    if (!links.includes(nextArticle)) {
+                        console.log(`No se encontró enlace de ${currentArticle} a ${nextArticle}`);
+                        return false;
+                    }
+                }
+                
+                console.log('Ruta válida encontrada');
+                return true;
+            }
+
+            // Función auxiliar para encontrar una ruta a un artículo específico
+            async function findPathToArticle(start, target) {
+                console.log(`Buscando ruta de ${start} a ${target}`);
+                const visited = new Set([start]);
+                const queue = [[start]];
+                
+                while (queue.length > 0) {
+                    const path = queue.shift();
+                    const current = path[path.length - 1];
+                    
+                    if (current === target) {
+                        console.log(`Ruta encontrada: ${path.join(' → ')}`);
+                        return path;
+                    }
+                    
+                    console.log(`Explorando enlaces desde ${current}`);
+                    const links = await getCachedLinks(current);
+                    console.log(`Enlaces encontrados: ${links.length}`);
+                    
+                    for (const link of links) {
+                        if (!visited.has(link)) {
+                            visited.add(link);
+                            queue.push([...path, link]);
+                        }
+                    }
+                }
+                
+                console.log(`No se encontró ruta de ${start} a ${target}`);
+                return null;
+            }
+
+            // Función auxiliar para búsqueda bidireccional
+            async function findBidirectionalPath(start, target) {
+                console.log('Iniciando búsqueda bidireccional:', start, '→', target);
+                
+                // Verificar que los artículos de inicio y objetivo sean válidos
+                if (!start || !target) {
+                    console.error('Error: Artículo de inicio o objetivo indefinido');
+                    return null;
+                }
+                
+                // Inicializar las colas y los conjuntos visitados
+                const forwardQueue = [start];
+                const backwardQueue = [target];
+                const forwardVisited = new Set([start]);
+                const backwardVisited = new Set([target]);
+                const forwardParent = new Map([[start, null]]);
+                const backwardParent = new Map([[target, null]]);
+                
+                // Función para obtener enlaces de un artículo
+                async function getLinks(article, direction) {
+                    try {
+                        if (direction === 'forward') {
+                            // Para la búsqueda hacia adelante, obtener los enlaces salientes
+                            return await getArticleLinks(article);
+                        } else {
+                            // Para la búsqueda hacia atrás, obtener los enlaces entrantes (lo que enlaza aquí)
+                            return await getBacklinks(article);
+                        }
+            } catch (error) {
+                        console.error('Error al obtener enlaces:', error);
+                return [];
+            }
+        }
+
+                // Función para verificar si hay un enlace directo entre dos artículos
+                async function verifyDirectLink(from, to) {
+                    try {
+                        // Verificar si hay un enlace directo de 'from' a 'to'
+                        const forwardLinks = await getArticleLinks(from);
+                        const backwardLinks = await getBacklinks(to);
+                        
+                        // El enlace debe existir en ambas direcciones
+                        const hasForwardLink = forwardLinks.includes(to);
+                        const hasBackwardLink = backwardLinks.includes(from);
+                        
+                        if (!hasForwardLink || !hasBackwardLink) {
+                            console.log(`No hay enlace bidireccional entre ${from} y ${to}`);
+                            return false;
+                        }
+                        
+                        console.log(`Enlace bidireccional confirmado entre ${from} y ${to}`);
+                        return true;
+                    } catch (error) {
+                        console.error('Error al verificar enlace directo:', error);
+                        return false;
+                    }
+                }
+                
+                // Función para reconstruir la ruta completa
+                async function reconstructPath(meetingPoint) {
+                    console.log('Reconstruyendo ruta desde el punto de encuentro:', meetingPoint);
+                    
+                    // Reconstruir la ruta desde el inicio hasta el punto de encuentro
+                    const forwardPath = [];
+                    let current = meetingPoint;
+                    while (current !== null) {
+                        forwardPath.unshift(current);
+                        current = forwardParent.get(current);
+                    }
+                    
+                    console.log('Ruta desde el inicio hasta el punto de encuentro:', forwardPath);
+                    
+                    // Reconstruir la ruta desde el punto de encuentro hasta el objetivo
+                    const backwardPath = [];
+                    current = meetingPoint;
+                    while (current !== null) {
+                        backwardPath.push(current);
+                        current = backwardParent.get(current);
+                    }
+                    
+                    // Combinar las rutas, eliminando el punto de encuentro duplicado
+                    const fullPath = [];
+                    const seen = new Set();
+                    
+                    // Añadir la ruta hacia adelante hasta el punto de encuentro
+                    for (let i = 0; i < forwardPath.length - 1; i++) {
+                        if (!seen.has(forwardPath[i])) {
+                            seen.add(forwardPath[i]);
+                            fullPath.push(forwardPath[i]);
+                        }
+                    }
+                    
+                    // Añadir la ruta hacia atrás desde el punto de encuentro
+                    for (let i = 0; i < backwardPath.length; i++) {
+                        if (!seen.has(backwardPath[i])) {
+                            seen.add(backwardPath[i]);
+                            fullPath.push(backwardPath[i]);
+                        }
+                    }
+                    
+                    // Asegurarse de que el artículo objetivo esté al final
+                    if (!seen.has(target)) {
+                        fullPath.push(target);
+                    }
+                    
+                    // Asegurarse de que el artículo inicial esté al principio
+                    if (!seen.has(start)) {
+                        fullPath.unshift(start);
+                    }
+                    
+                    // Eliminar elementos innecesarios después del objetivo
+                    const targetIndex = fullPath.indexOf(target);
+                    if (targetIndex !== -1) {
+                        fullPath.splice(targetIndex + 1);
+                    }
+                    
+                    // Eliminar duplicados manteniendo el orden
+                    const uniquePath = [];
+                    const seenArticles = new Set();
+                    for (const article of fullPath) {
+                        if (!seenArticles.has(article)) {
+                            seenArticles.add(article);
+                            uniquePath.push(article);
+                        }
+                    }
+                    
+                    console.log('Ruta completa reconstruida y verificada:', uniquePath.join(' → '));
+                    return uniquePath;
+                }
+                
+                // Ejecutar la búsqueda bidireccional
+                while (forwardQueue.length > 0 && backwardQueue.length > 0) {
+                    // Alternar entre búsqueda hacia adelante y hacia atrás
+                    const currentForward = forwardQueue.shift();
+                    const currentBackward = backwardQueue.shift();
+                    
+                    // Verificar si se encontró un punto de encuentro
+                    if (backwardVisited.has(currentForward)) {
+                        console.log('Punto de encuentro encontrado en búsqueda hacia adelante:', currentForward);
+                        return await reconstructPath(currentForward);
+                    }
+                    
+                    if (forwardVisited.has(currentBackward)) {
+                        console.log('Punto de encuentro encontrado en búsqueda hacia atrás:', currentBackward);
+                        return await reconstructPath(currentBackward);
+                    }
+                    
+                    // Obtener enlaces para la búsqueda hacia adelante
+                    const forwardLinks = await getLinks(currentForward, 'forward');
+                    for (const link of forwardLinks) {
+                        if (!forwardVisited.has(link)) {
+                            forwardVisited.add(link);
+                            forwardParent.set(link, currentForward);
+                            forwardQueue.push(link);
+                            
+                            // Verificar si este enlace ya fue visitado en la búsqueda hacia atrás
+                            if (backwardVisited.has(link)) {
+                                console.log('Punto de encuentro encontrado al explorar enlaces hacia adelante:', link);
+                                return await reconstructPath(link);
+                            }
+                        }
+                    }
+                    
+                    // Obtener enlaces para la búsqueda hacia atrás
+                    const backwardLinks = await getLinks(currentBackward, 'backward');
+                    for (const link of backwardLinks) {
+                        if (!backwardVisited.has(link)) {
+                            backwardVisited.add(link);
+                            backwardParent.set(link, currentBackward);
+                            backwardQueue.push(link);
+                            
+                            // Verificar si este enlace ya fue visitado en la búsqueda hacia adelante
+                            if (forwardVisited.has(link)) {
+                                console.log('Punto de encuentro encontrado al explorar enlaces hacia atrás:', link);
+                                return await reconstructPath(link);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('No se encontró ruta mediante búsqueda bidireccional');
+                return null;
+            }
+
+            // Función para mostrar la ruta óptima
+            async function showOptimalPath() {
+                try {
+                    // Detener el temporizador
+                    if (gameState.timer) {
+                        clearInterval(gameState.timer);
+                        gameState.timer = null;
+                    }
+
+                    const surrenderModal = new bootstrap.Modal(document.getElementById('surrenderModal'));
+                    const startArticle = document.getElementById('startArticle');
+                    const targetArticle = document.getElementById('targetArticle');
+                    const optimalPath = document.getElementById('optimalPath');
+                    
+                    startArticle.textContent = gameState.startArticle;
+                    targetArticle.textContent = gameState.targetArticle;
+                    
+                    if (gameState.optimalPath) {
+                        // Mostrar la ruta completa, no solo hasta el objetivo
+                        const path = gameState.optimalPath;
+                        
+                        // Obtener información de los artículos para mostrar el universo y planeta
+                        const startInfo = await getArticleInfo(gameState.startArticle);
+                        const targetInfo = await getArticleInfo(gameState.targetArticle);
+                        
+                        // Crear una descripción de la ruta
+                        let routeDescription = '';
+                        let mandatoryElements = '';
+                        
+                        // Caso 1: Ambos artículos son del mismo universo
+                        if (startInfo.universe === targetInfo.universe) {
+                            if (startInfo.universe === 'Cosmere') {
+                                if (startInfo.planet === targetInfo.planet) {
+                                    routeDescription = 'Ambos artículos son del mismo planeta en el Cosmere.';
+                                } else {
+                                    routeDescription = `Ruta dentro del Cosmere: desde ${startInfo.planet || 'un planeta'} hasta ${targetInfo.planet || 'otro planeta'}.`;
+                                    mandatoryElements = 'Cosmere';
+                                }
+                            } else if (startInfo.universe === 'Citoverso') {
+                                routeDescription = 'Ruta dentro del Citoverso.';
+                            }
+                        } 
+                        // Caso 2: Cosmere -> Citoverso
+                        else if (startInfo.universe === 'Cosmere' && targetInfo.universe === 'Citoverso') {
+                            routeDescription = 'Ruta desde el Cosmere hasta el Citoverso.';
+                            mandatoryElements = 'Cosmere → Brandon Sanderson → Citoverso';
+                        }
+                        // Caso 3: Citoverso -> Cosmere
+                        else if (startInfo.universe === 'Citoverso' && targetInfo.universe === 'Cosmere') {
+                            routeDescription = 'Ruta desde el Citoverso hasta el Cosmere.';
+                            mandatoryElements = 'Citoverso → Brandon Sanderson → Cosmere';
+                            
+                            // Si el planeta objetivo es conocido, añadirlo a los elementos obligatorios
+                            if (targetInfo.planet) {
+                                mandatoryElements += ` → ${targetInfo.planet}`;
+                            }
+                        }
+
+
+                        // Construir la ruta completa
+                        let fullPath = [];
+                        
+                        // Añadir el artículo inicial
+                        if (gameState.startArticle) {
+                            fullPath.push(gameState.startArticle);
+                        }
+                        
+                        // Añadir los elementos obligatorios si existen
+                        if (mandatoryElements) {
+                            fullPath = fullPath.concat(mandatoryElements.split(' → '));
+                        }
+                        
+                        // Añadir la ruta encontrada, eliminando duplicados consecutivos
+                        const uniquePath = path.filter((article, index) => index === 0 || article !== path[index - 1]);
+                        fullPath = fullPath.concat(uniquePath);
+
+                        optimalPath.innerHTML = `
+                            <div class="alert alert-info">
+                                <h6>Posible ruta encontrada:</h6>
+                                <p class="mt-2">${fullPath.join(' → ')}</p>
+                            </div>
+                        `;
+                } else {
+                        let timeLeft = 90; // 1 minuto y medio en segundos
+                        optimalPath.innerHTML = `
+                            <div class="alert alert-warning">
+                                <h6>Analizando posibles rutas...</h6>
+                                <p class="mt-2">Estamos buscando una ruta posible entre los artículos. Por favor, dame unos instantes para navegar la Coppermind.</p>
+                                <div class="text-center mt-3">
+                    <div class="loading-spinner" style="width: 30px; height: 30px; border-width: 3px;"></div>
+                                    <p class="mt-2" id="timeLeft">Tiempo restante: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}</p>
+                        </div>
+                </div>
+            `;
+                        
+                        const timerInterval = setInterval(() => {
+                            timeLeft--;
+                            const minutes = Math.floor(timeLeft / 60);
+                            const seconds = timeLeft % 60;
+                            document.getElementById('timeLeft').textContent = `Tiempo restante: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                            
+                            if (timeLeft <= 0) {
+                                clearInterval(timerInterval);
+                                optimalPath.innerHTML = `
+                                    <div class="alert alert-warning">
+                                        <h6>Lo sentimos</h6>
+                                        <p class="mt-2">No hemos podido encontrar una ruta disponible. Pregunta a alguna de las cotorras si sigues queriendo una posible solución.</p>
+                        </div>
+                    `;
+                            }
+                        }, 1000);
+                        
+                        // Seguir intentando encontrar la ruta
+                        calculateOptimalPath().then(path => {
+                            clearInterval(timerInterval);
+                            if (path) {
+                                gameState.optimalPath = path;
+                                
+                                // Obtener información de los artículos para mostrar el universo y planeta
+                                getArticleInfo(gameState.startArticle).then(startInfo => {
+                                    getArticleInfo(gameState.targetArticle).then(targetInfo => {
+                                        // Crear una descripción de la ruta
+                                        let routeDescription = '';
+                                        let mandatoryElements = '';
+                                        
+                                        // Caso 1: Ambos artículos son del mismo universo
+                                        if (startInfo.universe === targetInfo.universe) {
+                                            if (startInfo.universe === 'Cosmere') {
+                                                if (startInfo.planet === targetInfo.planet) {
+                                                    routeDescription = 'Ambos artículos son del mismo planeta en el Cosmere.';
+                            } else {
+                                                    routeDescription = `Ruta dentro del Cosmere: desde ${startInfo.planet || 'un planeta'} hasta ${targetInfo.planet || 'otro planeta'}.`;
+                                                    mandatoryElements = 'Cosmere';
+                                                }
+                                            } else if (startInfo.universe === 'Citoverso') {
+                                                routeDescription = 'Ruta dentro del Citoverso.';
+                                            }
+                                        } 
+                                        // Caso 2: Cosmere -> Citoverso
+                                        else if (startInfo.universe === 'Cosmere' && targetInfo.universe === 'Citoverso') {
+                                            routeDescription = 'Ruta desde el Cosmere hasta el Citoverso.';
+                                            mandatoryElements = 'Cosmere → Brandon Sanderson → Citoverso';
+                                        }
+                                        // Caso 3: Citoverso -> Cosmere
+                                        else if (startInfo.universe === 'Citoverso' && targetInfo.universe === 'Cosmere') {
+                                            routeDescription = 'Ruta desde el Citoverso hasta el Cosmere.';
+                                            mandatoryElements = 'Citoverso → Brandon Sanderson → Cosmere';
+                                            
+                                            // Si el planeta objetivo es conocido, añadirlo a los elementos obligatorios
+                                            if (targetInfo.planet) {
+                                                mandatoryElements += ` → ${targetInfo.planet}`;
+                                            }
+                                        }
+
+                                        // Calcular el número total de movimientos contando los símbolos →
+                                        const totalMoves = path.length - 1;
+
+                                        // Construir la ruta completa
+                                        let fullPath = [];
+                                        if (startArticle?.textContent) {
+                                            fullPath.push(startArticle.textContent);
+                                        }
+                                        if (mandatoryElements) {
+                                            fullPath = fullPath.concat(mandatoryElements.split(' → '));
+                                        }
+                                        fullPath = fullPath.concat(path.filter((article, index) => index === 0 || article !== path[index - 1]));
+
+                                        optimalPath.innerHTML = `
+                                            <div class="alert alert-info">
+                                                <h6>Ruta óptima encontrada:</h6>
+                                                <p class="mt-2">${fullPath.join(' → ')}</p>
+                                            </div>
+                                        `;
+                                    });
+                                });
+                            } else if (timeLeft > 0) {
+                                optimalPath.innerHTML = `
+                                    <div class="alert alert-warning">
+                                        <h6>No se encontró una ruta directa</h6>
+                                        <p class="mt-2">No se ha podido encontrar una ruta directa entre los artículos. Intenta explorar diferentes caminos.</p>
+                                    </div>
+                    `;
+                            }
+                        }).catch(error => {
+                            clearInterval(timerInterval);
+                            console.error('Error al calcular la ruta óptima:', error);
+                            optimalPath.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <h6>Error al calcular la ruta</h6>
+                                    <p class="mt-2">Hubo un error al intentar calcular la ruta óptima. Por favor, intenta de nuevo.</p>
+                    </div>
+                `;
+                        });
+                    }
+                    
+                    surrenderModal.show();
+            } catch (error) {
+                    console.error('Error al mostrar la ruta óptima:', error);
+                    alert('Error al mostrar la ruta óptima. Por favor, intenta de nuevo.');
+                }
+            }
+
+            // Función para obtener los enlaces que apuntan a un artículo
+            async function getBacklinks(title) {
+                try {
+                    const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&list=backlinks&bltitle=${encodeURIComponent(title)}&bllimit=50&format=json&origin=*`);
+                    const data = await response.json();
+                    const backlinks = data.query.backlinks || [];
+
+                    // Filtros más estrictos para enlaces no permitidos
+                    const disallowedPrefixes = [
+                        'Coppermind:', 'Cite:', 'Categoría:', 'Archivo:', 'Plantilla:', 
+                        'Usuario:', 'Discusión:', 'Ayuda:', 'Portal:', 'Especial:',
+                        'Wikipedia:', 'Wikia:', 'Fandom:', 'MediaWiki:', 'Module:'
+                    ];
+
+                    // Lista de substrings que no son artículos válidos
+                    const disallowedSubstrings = [
+                        '://', '(desambiguación)', '(desambigüación)', 'desambiguación',
+                        'desambigüación', 'redirección', 'redirect', 'categoría', 'categoría:',
+                        'plantilla:', 'usuario:', 'discusión:', 'ayuda:', 'portal:', 'especial:',
+                        'wikipedia:', 'wikia:', 'fandom:', 'mediawiki:', 'module:', 'cite:'
+                    ].filter(substring => 
+                        !substring.includes('resumen') && 
+                        !substring.includes('Resumen') && 
+                        !substring.includes('summary') && 
+                        !substring.includes('Summary')
+                    );
+
+                    return backlinks
+                        .map(link => link.title.trim())
+                        .filter(link => {
+                            // Convertir a minúsculas para comparación insensible a mayúsculas/minúsculas
+                            const lowerLink = link.toLowerCase();
+                            
+                            // Verificar prefijos no permitidos
+                            if (disallowedPrefixes.some(prefix => lowerLink.startsWith(prefix.toLowerCase()))) {
+                                return false;
+                            }
+
+                            // Verificar substrings no permitidos
+                            if (disallowedSubstrings.some(substring => lowerLink.includes(substring))) {
+                                return false;
+                            }
+
+                            // Verificar si es un enlace externo o contiene caracteres especiales
+                            if (link.includes('://') || link.includes('(') || link.includes(')')) {
+                                return false;
+                            }
+
+                            return true;
+                        });
+                } catch (error) {
+                    console.error('Error al obtener backlinks:', error);
+                    return [];
+                }
+            }
+
+            // Función para mostrar una pista
+            async function showHint() {
+                try {
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    loadingSpinner.style.display = 'block';
+                    loadingSpinner.innerHTML = `
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Calculando pista...</p>
+                        </div>
+                    `;
+
+                    const hintsSection = document.querySelector('.hints-section');
+                    hintsSection.classList.remove('hidden');
+
+                    const backlinks = await getBacklinks(gameState.targetArticle);
+                    if (backlinks.length === 0) {
+                        hintsSection.innerHTML = `
+                            <h5>Pistas</h5>
+                            <div class="hint-item">
+                                No se encontraron artículos que enlacen al objetivo.
+                            </div>
+                        `;
+                    } else {
+                        // Seleccionar hasta 3 backlinks aleatorios
+                        const randomBacklinks = backlinks
+                            .sort(() => 0.5 - Math.random())
+                            .slice(0, 3);
+
+                        hintsSection.innerHTML = `
+                            <h5>Puedes llegar a este artículo desde:</h5>
+                            <div class="hint-item">
+            
+                                <ul class="mt-2 list-unstyled">
+                                    ${randomBacklinks.map(link => `
+                                        <li class="mb-2 d-flex align-items-center">
+                                            <span class="me-2">${link}</span>
+                                            <span class="me-2">|</span>
+                                            <button class="btn btn-sm btn-info secondary-hint-button" data-article="${link}">
+                                                <i class="fas fa-question-circle"></i> Obtener pista
+                                            </button>
+                                            <span class="secondary-hint ms-2" id="hint-${link.replace(/\s+/g, '-')}" style="display: none;"></span>
+                                </li>
+                            `).join('')}
+                                </ul>
+                    </div>
+            `;
+                    }
+
+                    gameState.hintsUsed++;
+                } catch (error) {
+                    console.error('Error al mostrar la pista:', error);
+                    alert('Error al mostrar la pista. Por favor, intenta de nuevo.');
+                } finally {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            }
+
+            // Función para mostrar una pista secundaria
+            async function showSecondaryHint(selectedArticle) {
+                try {
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    loadingSpinner.style.display = 'block';
+                    loadingSpinner.innerHTML = `
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Calculando pista secundaria...</p>
+                </div>
+            `;
+            
+                    const hintContainer = document.getElementById(`hint-${selectedArticle.replace(/\s+/g, '-')}`);
+                    const button = document.querySelector(`[data-article="${selectedArticle}"]`);
+                    const currentArticle = gameState.currentArticle;
+                    
+                    // Obtener los enlaces del artículo seleccionado
+                    const links = await getArticleLinks(selectedArticle);
+                    
+                    if (links.length === 0) {
+                        hintContainer.innerHTML = `<span>No hay enlaces disponibles</span>`;
+                    } else {
+                        // Filtrar los enlaces que no son el artículo actual ni el objetivo
+                        const relevantLinks = links.filter(link => 
+                            link !== currentArticle && 
+                            link !== gameState.targetArticle
+                        );
+
+                        if (relevantLinks.length > 0) {
+                            // Mostrar un enlace aleatorio
+                            const randomLink = relevantLinks[Math.floor(Math.random() * relevantLinks.length)];
+                            hintContainer.innerHTML = `<span>${randomLink}</span>`;
+                        } else {
+                            hintContainer.innerHTML = `<span>No hay enlaces relevantes</span>`;
+                        }
+                    }
+
+                    // Ocultar el botón y mostrar la pista
+                    button.style.display = 'none';
+                    hintContainer.style.display = 'inline';
+
+                    // Añadir un minuto al temporizador
+                    gameState.seconds += 60;
+                    const minutes = Math.floor(gameState.seconds / 60);
+                    const seconds = gameState.seconds % 60;
+                    document.getElementById('timer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    gameState.secondaryHintsUsed++;
+                } catch (error) {
+                    console.error('Error al mostrar la pista secundaria:', error);
+                    alert('Error al mostrar la pista secundaria. Por favor, intenta de nuevo.');
+                } finally {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            }
+
+            // Función para manejar los clics en los botones y enlaces
+            function handleButtonClick(e) {
+                if (e.target && e.target.id === 'hintButton') {
+                    showHint();
+                } else if (e.target && e.target.id === 'surrenderButton') {
+                    showOptimalPath();
+                } else if (e.target && e.target.id === 'startGame') {
+            startGame();
+                    const welcomeModal = bootstrap.Modal.getInstance(document.getElementById('welcomeModal'));
+                    if (welcomeModal) {
+                        welcomeModal.hide();
+                    }
+                } else if (e.target && e.target.id === 'tutorialStartButton') {
+                    startGame();
+                    const tutorialModal = bootstrap.Modal.getInstance(document.getElementById('tutorialModal'));
+                    if (tutorialModal) {
+                        tutorialModal.hide();
+                    }
+                } else if (e.target && e.target.id === 'goBackButton') {
+                    goBack();
+                } else if (e.target && e.target.id === 'newGameButton') {
+                    // Asegurarse de que se cierren todos los modales antes de iniciar un nuevo juego
+                    const gameModal = bootstrap.Modal.getInstance(document.getElementById('gameModal'));
+                    if (gameModal) {
+                        gameModal.hide();
+                    }
+                    const victoryModal = bootstrap.Modal.getInstance(document.getElementById('victoryModal'));
+                    if (victoryModal) {
+                        victoryModal.hide();
+                    }
+                    const surrenderModal = bootstrap.Modal.getInstance(document.getElementById('surrenderModal'));
+                    if (surrenderModal) {
+                        surrenderModal.hide();
+                    }
+                    // Iniciar un nuevo juego después de un breve retraso para asegurar que los modales se cierren
+                    setTimeout(() => {
+                        startGame();
+                    }, 300);
+                } else if (e.target && e.target.classList.contains('secondary-hint-button')) {
+                    const selectedArticle = e.target.dataset.article;
+                    showSecondaryHint(selectedArticle);
+                } else if (e.target && e.target.classList.contains('link-item')) {
+                    const article = e.target.dataset.article;
+                    if (article) {
+                        navigateToArticle(article);
+                    }
+                }
+            }
+
+            // Función para inicializar el juego
+            function initGame() {
+                // Configurar el event listener para los botones
+                document.addEventListener('click', handleButtonClick);
+
+                // Animación de las tarjetas
+                const cards = document.querySelectorAll('.article-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, 200 * index);
+                });
+
+                // Mostrar el modal de bienvenida
+                const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+                welcomeModal.show();
+            }
+
+            // Función para navegar a un artículo
+            async function navigateToArticle(title) {
+                try {
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    loadingSpinner.style.display = 'block';
+                    loadingSpinner.innerHTML = `
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Cargando artículo...</p>
+                        </div>
+                    `;
+
+                    // Cargar la información del artículo sin obtener categorías
+                    const response = await fetch(`https://es.coppermind.net/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+                    const data = await response.json();
+                    
+                    if (!data.query || !data.query.pages) {
+                        throw new Error('No se pudo obtener la información del artículo');
+                    }
+
+                    const pageId = Object.keys(data.query.pages)[0];
+                    const page = data.query.pages[pageId];
+                    
+                    if (!page || page.missing) {
+                        throw new Error('Artículo no encontrado');
+                    }
+
+                    // Crear un objeto de información del artículo sin categorías
+                    const articleInfo = {
+                        title: page.title,
+                        extract: page.extract || 'No hay extracto disponible para este artículo.',
+                        universe: 'Desconocido', // No obtenemos el universo para artículos intermedios
+                        planet: 'Desconocido'    // No obtenemos el planeta para artículos intermedios
+                    };
+
+                    gameState.currentArticle = title;
+                    gameState.path.push(title);
+                    gameState.moves++;
+                    updateStats();
+                    updateArticleUI(articleInfo);
+
+                    if (title === gameState.targetArticle) {
+                        // El jugador ha ganado
+                        const gameModal = new bootstrap.Modal(document.getElementById('gameModal'));
+                        const modalBody = document.getElementById('gameModal').querySelector('.modal-body');
+                        modalBody.innerHTML = `
+                            <div class="text-center">
+                                <h4>¡Felicidades!</h4>
+                                <p>Has llegado al artículo objetivo en ${gameState.moves} movimientos y ${Math.floor(gameState.seconds / 60)}:${(gameState.seconds % 60).toString().padStart(2, '0')} minutos.</p>
+                                <button class="btn btn-primary" id="newGameButton">Jugar de nuevo</button>
+                            </div>
+                        `;
+                        gameModal.show();
+                    }
+
+                    await showAvailableLinks();
+                } catch (error) {
+                    console.error('Error al navegar al artículo:', error);
+                    alert('Error al cargar el artículo. Por favor, intenta de nuevo.');
+                } finally {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            }
+
+            // Función para volver atrás
+            function goBack() {
+                if (gameState.path.length > 1) {
+                    const previousArticle = gameState.path[gameState.path.length - 2];
+                    gameState.path.pop();
+                    gameState.moves++;
+                    updateStats();
+                    navigateToArticle(previousArticle);
+                }
+            }
+
+            // Esperar a que todo esté cargado
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initGame);
+            } else {
+                initGame();
+            }
+        })();
+    </script>
+</body>
+</html> 
